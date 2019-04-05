@@ -1,5 +1,5 @@
 import socket, pickle
-import queue 
+import Queue as queue
 ############structure of msg goes here #################
 msg = {}
 msg['msg_type'] =""
@@ -16,7 +16,6 @@ supernode_ips = []
 message_wait_queue = queue.Queue()
 
 #######functions and signal handlers go here###
-
 
 
 

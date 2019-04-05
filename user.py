@@ -1,5 +1,5 @@
 import socket, pickle
-import queue 
+import Queue as queue
 ############structure of msg goes here should not exceed 4kB###
 msg = {}
 msg['msg_type'] =""
