@@ -4,6 +4,7 @@ import user_variables
 import supernode_variables
 import threading
 from threading import Lock 
+import Queue as queue
 ############structure of msg goes here should not exceed 4kB###
 """
 msg = {}
