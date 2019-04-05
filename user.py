@@ -21,8 +21,6 @@ msg['ip'] = ""
 ### mutex locks may also be needed to added
 def join():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print 'user ---'  + str(user_variables.supernode_ips[0])
-    print type(user_variables.supernode_ips[0])
     s.connect((user_variables.supernode_ips[0],supernode_variables.joining_port))
     msg = {}
     msg['msg_type'] = 'join'
@@ -31,7 +29,8 @@ def join():
     s.close()
     print 'Data Sent to Server'
     receive_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    receive_socket.bind((socket.gethostbyname(socket.gethostname()),user_variables.joining_port))
+    print 'user ---'  + str(user_variables.self_ip)
+    receive_socket.bind((user_variables.self_ip,user_variables.joining_port))
     receive_socket.listen(1)
     conn, addr = receive_socket.accept()
     print 'Connected by', addr
