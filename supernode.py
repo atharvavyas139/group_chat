@@ -15,6 +15,6 @@ msg['ip_to_index'] = {}
 msg['index'] = -1
 msg['ip_address'] = ""
 """
-#######functions and signal handlers go here###
+#######functions and signal handlers go here### 
 t1 = threading.Thread(target=supernode_joining_protocol.start_joining_protocol, args=(supernode_variables.joining_port,))
 t1.start()

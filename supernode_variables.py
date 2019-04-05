@@ -11,5 +11,5 @@ ip_to_index_map = {}
 ####################fixed wale####################
 supernode_ips = [] 
 message_wait_queue = queue.Queue()
-
-joining_port = 50010
+self_ip = '127.0.0.1'
+joining_port = 50019
