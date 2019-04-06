@@ -1,5 +1,5 @@
 import socket, pickle
-import queue 
+import Queue as queue
 import threading
 from threading import Lock
 #####################mutex wale ######################
