@@ -27,7 +27,7 @@ def start_joining_protocol(port_no):
 			print 'addr[0]:' + addr[0]
 			print type(addr[0])
 			send_socket.connect((addr[0],user_variables.joining_port))
-			msg['msg_type'] = 'reply_join'
+			msg['msg_type'] = REPLY_JOIN
 			msg['index'] = return_index
 			send_socket.send(pickle.dumps(msg) )
 			send_socket.close()

@@ -23,7 +23,7 @@ def join():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((user_variables.supernode_ips[0],supernode_variables.joining_port))
     msg = {}
-    msg['msg_type'] = 'join'
+    msg['msg_type'] = JOIN
     msg['ip'] = user_variables.self_ip
     s.send(pickle.dumps(msg) )
     s.close()
