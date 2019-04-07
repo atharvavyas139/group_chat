@@ -46,7 +46,7 @@ def send_reply_hello():
             data = conn.recv(4096)
             data_received = pickle.loads(data)
 
-            ##### potentiol deadlock #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            ##
             user_variables.mutex.acquire()
             user_variables.ip_to_index_map[addr[0]] = data_received['index']
             user_variables.mutex.release()
@@ -104,7 +104,7 @@ def hello_users():
 
             except socket.timeout:
                 print str(ip) + ' time out '
-                # CALL LEAVING PROTOCOL
+                # CALL LEAVING PROTOCOL send leave message to supernode on the leave port 
             finally:
                 receive_socket.close()
 
@@ -113,6 +113,7 @@ def hello_users():
     print 'join complete'
     t1 = threading.Thread(target=send_reply_hello, args=())
     t1.start()
+
     t1.join()
 
 
