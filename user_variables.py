@@ -2,6 +2,9 @@ import socket, pickle
 import Queue as queue
 import threading
 from threading import Lock 
+import os
+from subprocess import Popen, PIPE
+import time
 
 
 ######### Message Type 
@@ -28,5 +31,7 @@ received_ips = []
 self_index = -1 # gets from super node
 self_ip = '127.0.0.1'
 joining_port = 50111 #fixed for the application across all the users 
+sending_port = 50112
+receiving_port = 50113
 join_complete = False 
 # message_queue = for cbcast 

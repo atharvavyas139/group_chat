@@ -66,23 +66,34 @@ def send_reply_hello():
     finally:
         s.close()
 
-## send hello to all the other nodes 
-def hello_users():
+
+
+## to send msgs to all the users in the group 
+def send_to_all(msg):
+
+    # set the send recieve port based on the msg_type
+    if(msg['msg_type'] == user_variables.HELLO):
+        send_port = user_variables.joining_port
+        receive_port = user_variables.joining_port
+    else:
+        if(msg['msg_type'] == user_variables.TEXT_MSG):
+            # msg will be send to the receiving_port of the receiver 
+            send_port = user_variables.receiving_port
+            receive_port = user_variables.sending_port
+
+
     for ip in user_variables.ip_to_index_map:
         if(ip != user_variables.self_ip):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.connect((ip,user_variables.joining_port))
-            msg = {}
-            msg['msg_type'] = user_variables.HELLO
-            msg['index'] = user_variables.self_index
+            s.connect((ip,send_port))
             try:
-                print 'hello msg sent to '+ str(ip) 
+                print 'msg type ' +str(msg['msg_type']) + ' sent to '+ str(ip) 
                 s.send(pickle.dumps(msg) )
                 s.close()
                 # wait for message receive 
                 receive_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 receive_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                receive_socket.bind(('',user_variables.joining_port))
+                receive_socket.bind(('', receive_port))
                 receive_socket.setblocking(1)              #go back to blocking mode
 
                 ## timeout set to 1 sec
@@ -96,11 +107,12 @@ def hello_users():
                 data_received = pickle.loads(data)
                 receive_socket.close()
 
-                ## update the local timestamp with the timestamp received 
-                user_variables.mutex.acquire()
-                for i in range(100):
-                    user_variables.timestamp[i] = max(user_variables.timestamp[i], data_received['timestamp'][i])
-                user_variables.mutex.release()
+                ## update the local timestamp with the timestamp received if the msg_type is HELLO 
+                if(msg['msg_type'] == user_variables.HELLO):
+                    user_variables.mutex.acquire()
+                    for i in range(100):
+                        user_variables.timestamp[i] = max(user_variables.timestamp[i], data_received['timestamp'][i])
+                    user_variables.mutex.release()
 
             except socket.timeout:
                 print str(ip) + ' time out '
@@ -108,13 +120,68 @@ def hello_users():
             finally:
                 receive_socket.close()
 
+
+## receive check 
+def receive_msg():
+    try :
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # s.bind((supernode_variables.self_ip,port_no))
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind(('',user_variables.receiving_port))
+        s.listen(102)
+        while True:
+            conn, addr = s.accept()
+            print 'Connected by', addr
+            data = conn.recv(4096)
+            data_received = pickle.loads(data)
+
+            print str(addr[0])+':' + data_received['text_msg']
+
+            ## send back the reply 
+            msg = {}
+            send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            print 'reply being sent to addr[0]:' + addr[0]
+            print type(addr[0])
+            send_socket.connect((addr[0],user_variables.sending_port))
+            msg['msg_type'] = user_variables.ACK
+            msg['index'] = user_variables.self_index
+            msg['timestamp'] = user_variables.timestamp
+            print 'ACK message sent'
+            send_socket.send(pickle.dumps(msg) )
+            send_socket.close()
+    finally:
+        s.close()
+
+
+# fiunction to send the message to the other users 
+def send_txt_msg():
+    while(True):
+        message = raw_input(str(user_variables.self_ip)+'$ ')
+        msg = {}
+        msg['msg_type'] = user_variables.TEXT_MSG
+        msg['index'] = user_variables.self_index
+        msg['text_msg'] = message
+        msg['timestamp'] = user_variables.timestamp
+        user_variables.timestamp[user_variables.self_index] += 1
+        send_to_all(msg)
+
+
+## send hello to all the other nodes 
+def hello_users():
+    msg = {}
+    msg['msg_type'] = user_variables.HELLO
+    msg['index'] = user_variables.self_index
+    send_to_all(msg)
+
     ## joining protocol complete now  
     user_variables.join_complete = True
     print 'join complete'
     t1 = threading.Thread(target=send_reply_hello, args=())
     t1.start()
-
-    t1.join()
+    t2 = threading.Thread(target=send_txt_msg, args=())
+    t2.start()
+    t3 = threading.Thread(target=receive_msg, args=())
+    t3.start()
 
 
 
@@ -143,6 +210,8 @@ def reply_join():
     finally:
         receive_socket.close()
 
+
+## join start 
 def start_join():
     for i in range(1):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
