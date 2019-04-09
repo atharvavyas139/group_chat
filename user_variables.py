@@ -21,12 +21,12 @@ UPDATE = 8 # Crash recovery
 
 #####################mutex wale ######################
 mutex = Lock()
+timestamp = [0 for x in range(100)]
+ip_to_index_map = {}
 
 ############local variable go here##############################
 supernode_ips =  ['127.0.0.1'] # need to add elements
 supernode_ports = [50019]	# will be fixed for all supernodes 
-timestamp = [0 for x in range(100)]
-ip_to_index_map = {}
 received_ips = []
 self_index = -1 # gets from super node
 self_ip = '127.0.0.1'
@@ -38,12 +38,12 @@ priority_queue= queue.PriorityQueue()
 # message_queue = for cbcast
 
 ########################priority queue #######################
-class Mytimestamp(object): 
-	def __init__(self, time_stamp, time_received, message): 
+class QueueElement(object): 
+	def __init__(self, time_stamp, time_received, message, index): 
 		self.timestamp = time_stamp
 		self.time_received = time_received
 		self.message = message
-
+		self.index = index
 	def __str__(self):
 		return "({0})".format(self.message)
 
@@ -73,7 +73,7 @@ timestamp1[1] = 1
 timestamp1[3] = 4
 rt1 = time.time()
 msg1 = "message1"
-priority_queue.put(Mytimestamp(timestamp1, rt1, msg1))
+priority_queue.put(QueueElement(timestamp1, rt1, msg1, index))
 while not priority_queue.empty():
 	myt = priority_queue.get()
 	print 'Processing level:', myt

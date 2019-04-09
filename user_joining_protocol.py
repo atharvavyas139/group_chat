@@ -5,6 +5,8 @@ import threading
 from threading import Lock 
 import struct
 import Queue as queue
+import time
+import xterm
 ############ structure of msg goes here should not exceed 4kB ###
 """
 msg = {}
@@ -120,6 +122,15 @@ def send_to_all(msg):
             finally:
                 receive_socket.close()
 
+#### updates the vector clock when a message is delivered
+def update_vector_clock(timestamp):
+    user_variables.mutex.acquire()
+
+    for i in range(100):
+        user_variables.timestamp[i] = max(user_variables.timestamp[i], timestamp[i])
+
+    user_variables.mutex.release()
+
 
 ## receive check 
 def receive_msg():
@@ -134,9 +145,8 @@ def receive_msg():
             print 'Connected by', addr
             data = conn.recv(4096)
             data_received = pickle.loads(data)
-
+            time_received = time.time()            
             print str(addr[0])+':' + data_received['text_msg']
-
             ## send back the reply 
             msg = {}
             send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -149,6 +159,26 @@ def receive_msg():
             print 'ACK message sent'
             send_socket.send(pickle.dumps(msg) )
             send_socket.close()
+            user_variables.priority_queue.put(user_variables.QueueElement(data_received['timestamp'], 
+            time_received, data_received['text_msg'], data_received['index']))
+            while True:
+                queue_element = user_variables.priority_queue.get()
+                first_index = queue_element.index
+                i = -1
+                for i in range(100):
+                    if i == first_index:
+                        if user_variables.timestamp[i] != queue_element.timestamp[i] -1:
+                            break
+                    else:
+                        if user_variables.timestamp[i] < queue_element.timestamp[i]:
+                            break
+                if i == 100: #condition to deliver message is true
+                    update_vector_clock(queue_element.timestamp)
+                    xterm.print_xterm_message(queue_element.message_content)
+                else:# put back the element again
+                    user_variables.priority_queue.put(queue_element)
+                    break
+
     finally:
         s.close()
 
