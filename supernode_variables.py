@@ -1,5 +1,8 @@
 import socket, pickle
-import Queue as queue
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 import threading
 from threading import Lock
 #####################mutex wale ######################
@@ -26,3 +29,4 @@ supernode_ips = []
 message_wait_queue = queue.Queue()
 self_ip = '127.0.0.1'
 joining_port = 50019
+leaving_port = 50021

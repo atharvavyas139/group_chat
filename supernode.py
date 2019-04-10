@@ -3,7 +3,11 @@ import threading
 from threading import Lock
 import supernode_variables
 import supernode_joining_protocol
-import Queue as queue
+import leaving_protocol
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 ############structure of msg goes here only for variable message field convention #################
 # not to be used directly #
 """
@@ -19,3 +23,5 @@ msg['ip_address'] = ""
 #######functions and signal handlers go here###
 t1 = threading.Thread(target=supernode_joining_protocol.start_joining_protocol, args=(supernode_variables.joining_port,))
 t1.start()
+t2 = threading.Thread(target=leaving_protocol.leaving_protocol, args=(supernode_variables.leaving_port,))
+t2.start()

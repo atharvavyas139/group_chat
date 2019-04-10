@@ -116,6 +116,7 @@ def send_to_all(msg):
 
             except socket.timeout:
                 print str(ip) + ' time out '
+                logout(ip)
                 # CALL LEAVING PROTOCOL send leave message to supernode on the leave port 
             finally:
                 receive_socket.close()
@@ -157,13 +158,16 @@ def receive_msg():
 def send_txt_msg():
     while(True):
         message = raw_input(str(user_variables.self_ip)+'$ ')
-        msg = {}
-        msg['msg_type'] = user_variables.TEXT_MSG
-        msg['index'] = user_variables.self_index
-        msg['text_msg'] = message
-        msg['timestamp'] = user_variables.timestamp
-        user_variables.timestamp[user_variables.self_index] += 1
-        send_to_all(msg)
+        if(message == 'logout'):
+            logout('0')
+        else:
+            msg = {}
+            msg['msg_type'] = user_variables.TEXT_MSG
+            msg['index'] = user_variables.self_index
+            msg['text_msg'] = message
+            msg['timestamp'] = user_variables.timestamp
+            user_variables.timestamp[user_variables.self_index] += 1
+            send_to_all(msg)
 
 
 ## send hello to all the other nodes 
@@ -178,6 +182,8 @@ def hello_users():
     print 'join complete'
     t1 = threading.Thread(target=send_reply_hello, args=())
     t1.start()
+    # t4 = threading.Thread(target=logout, args=())
+    # t4.start()
     t2 = threading.Thread(target=send_txt_msg, args=())
     t2.start()
     t3 = threading.Thread(target=receive_msg, args=())
@@ -228,3 +234,20 @@ def start_join():
         reply_join()
 
 ############## startup goes here ##############
+
+
+
+
+######### Logout function ######
+def logout(ip):
+    # while True:
+    msg = {}
+    msg['msg_type'] = user_variables.LEAVE
+    msg['ip'] = ip
+    if ip == '0':
+        msg['ip'] = user_variables.self_ip
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((user_variables.supernode_ips[0],user_variables.supernode_leaving_port))
+    s.send(pickle.dumps(msg) )
+    s.close()
+    print ('Leave message sent to the Server')
