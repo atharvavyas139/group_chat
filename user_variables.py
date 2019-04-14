@@ -25,11 +25,11 @@ timestamp = [0 for x in range(100)]
 ip_to_index_map = {}
 
 ############local variable go here##############################
-supernode_ips =  ['127.0.0.1'] # need to add elements
+supernode_ips =  ['10.117.2.134'] # need to add elements
 supernode_ports = [50019]	# will be fixed for all supernodes 
 received_ips = []
 self_index = -1 # gets from super node
-self_ip = '127.0.0.1'
+self_ip = '10.117.2.134'
 joining_port = 50111 #fixed for the application across all the users 
 sending_port = 50112
 receiving_port = 50113

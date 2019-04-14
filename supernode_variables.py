@@ -24,5 +24,5 @@ UPDATE = 8 # Crash recovery
 ####################fixed wale####################
 supernode_ips = [] 
 message_wait_queue = queue.Queue()
-self_ip = '127.0.0.1'
+self_ip = '10.117.2.134'
 joining_port = 50019
