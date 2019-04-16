@@ -29,7 +29,7 @@ def leaving_protocol(port_no):
 				supernode_variables.mutex.acquire()
 				supernode_variables.index_array[supernode_variables.ip_to_index_map[data_received['ip']]] = 0
 				del supernode_variables.ip_to_index_map[data_received['ip']]
-
+				del supernode_variables.ip_to_username[data_received['ip']]
 				for ip in supernode_variables.ip_to_index_map:
 					msg = {}
 					send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
