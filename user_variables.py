@@ -23,6 +23,7 @@ UPDATE = 8 # Crash recovery
 mutex = Lock()
 timestamp = [0 for x in range(100)]
 ip_to_index_map = {}
+username = ""
 
 ############local variable go here##############################
 supernode_ips =  ['10.117.12.118'] # need to add elements

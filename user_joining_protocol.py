@@ -17,6 +17,7 @@ msg['timestamp'] = [0 for x in range(100)]
 msg['ip_to_index'] = {}
 msg['index'] = -1
 msg['ip'] = ""
+msg['username'] = ""
 """
 
 # supernode_ips = ['127.0.0.1'] # need to add elements
@@ -162,7 +163,7 @@ def receive_msg():
             send_socket.send(pickle.dumps(msg) )
             send_socket.close()
             user_variables.priority_queue.put(user_variables.QueueElement(data_received['timestamp'], 
-            time_received, data_received['text_msg'], data_received['index']))
+            time_received, data_received['username'] +': ' +data_received['text_msg'], data_received['index']))
             while True:
                 if user_variables.priority_queue.empty():
                     break
@@ -195,6 +196,7 @@ def receive_msg():
 def send_txt_msg():
     while(True):
         message = raw_input(str(user_variables.self_ip)+'$ ')
+        xterm.print_xterm_message(user_variables.username +': ' +message)
         if(message == 'logout'):
             logout('0')
         else:
@@ -203,6 +205,7 @@ def send_txt_msg():
             msg['index'] = user_variables.self_index
             msg['text_msg'] = message
             msg['timestamp'] = user_variables.timestamp
+            msg['username'] = user_variables.username
             user_variables.timestamp[user_variables.self_index] += 1
             send_to_all(msg)
 
@@ -212,6 +215,7 @@ def hello_users():
     msg = {}
     msg['msg_type'] = user_variables.HELLO
     msg['index'] = user_variables.self_index
+    msg['username'] = user_variables.username
     send_to_all(msg)
 
     ## joining protocol complete now  
@@ -258,6 +262,9 @@ def reply_join():
 
 ## join start 
 def start_join():
+    user_variables.username = raw_input('Enter a user name : ')
+    time.sleep(1.0)
+    xterm.print_xterm_message('Welcome '+user_variables.username)
     for i in range(1):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((user_variables.supernode_ips[i],user_variables.supernode_ports[0]))
