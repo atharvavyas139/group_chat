@@ -1,5 +1,6 @@
 import socket, pickle
 import user_variables
+import sys
 import supernode_variables
 import threading
 from threading import Lock 
@@ -87,13 +88,13 @@ def send_to_all(msg):
     for ip in user_variables.ip_to_index_map:
         if(ip != user_variables.self_ip):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.connect((ip,send_port))
+            receive_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
+                s.connect((ip,send_port))
                 print 'msg type ' +str(msg['msg_type']) + ' sent to '+ str(ip) 
                 s.send(pickle.dumps(msg) )
                 s.close()
                 # wait for message receive 
-                receive_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 receive_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 receive_socket.bind(('', receive_port))
                 receive_socket.setblocking(1)              #go back to blocking mode
@@ -116,11 +117,12 @@ def send_to_all(msg):
                         user_variables.timestamp[i] = max(user_variables.timestamp[i], data_received['timestamp'][i])
                     user_variables.mutex.release()
 
-            except socket.timeout:
+            except :
                 print str(ip) + ' time out '
                 logout(ip)
                 # CALL LEAVING PROTOCOL send leave message to supernode on the leave port 
             finally:
+                s.close()
                 receive_socket.close()
 
 #### updates the vector clock when a message is delivered
@@ -223,6 +225,8 @@ def hello_users():
     t2.start()
     t3 = threading.Thread(target=receive_msg, args=())
     t3.start()
+    t4 = threading.Thread(target=leave_update, args= ())
+    t4.start()
 
 
 
@@ -231,7 +235,7 @@ def reply_join():
     try:
         receive_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         receive_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        receive_socket.bind((user_variables.self_ip,user_variables.joining_port))
+        receive_socket.bind(('',user_variables.joining_port))
         receive_socket.listen(1)
         conn, addr = receive_socket.accept()
         print 'Connected by', addr
@@ -273,7 +277,28 @@ def start_join():
 
 
 
-######### Logout function ######
+
+######### Leave functions ######
+def leave_update():
+        receive_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        receive_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        receive_socket.bind(('',user_variables.leaving_port))
+        receive_socket.listen(1)
+        conn, addr = receive_socket.accept()
+        data = conn.recv(4096)
+        data_received = pickle.loads(data)
+        receive_socket.close()
+        print str(data_received['ip'])+': leaving...'
+
+
+        ## update the timestamp and ip_to_index_map 
+        user_variables.mutex.acquire()
+        user_variables.timestamp[user_variables.ip_to_index_map[data_received['ip']]] = 0
+        del user_variables.ip_to_index_map[data_received['ip']]
+        user_variables.mutex.release()
+
+
+
 def logout(ip):
     # while True:
     msg = {}
@@ -281,6 +306,7 @@ def logout(ip):
     msg['ip'] = ip
     if ip == '0':
         msg['ip'] = user_variables.self_ip
+        sys.exit(0)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((user_variables.supernode_ips[0],user_variables.supernode_leaving_port))
     s.send(pickle.dumps(msg) )
