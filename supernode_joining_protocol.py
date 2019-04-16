@@ -18,6 +18,7 @@ def start_joining_protocol(port_no):
 			data = conn.recv(4096)
 			data_received = pickle.loads(data)
 			supernode_variables.mutex.acquire()
+			supernode_variables.ip_to_username[addr[0]] = data_received['username']
 			for i in range(100):
 				if supernode_variables.index_array[i] == 0:
 					supernode_variables.index_array[i] = 1
@@ -33,10 +34,11 @@ def start_joining_protocol(port_no):
 			msg['msg_type'] = supernode_variables.REPLY_JOIN
 			msg['index'] = return_index
 			msg['ip_to_index'] = supernode_variables.ip_to_index_map
+			msg['ip_to_username'] = supernode_variables.ip_to_username
 			send_socket.send(pickle.dumps(msg) )
 			send_socket.close()
 			print 'reply_join sent to user'
-			print supernode_variables.ip_to_index_map
+			print supernode_variables.ip_to_username
 			supernode_variables.mutex.release()
 			conn.close()
 			print data_received

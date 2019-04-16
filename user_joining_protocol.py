@@ -46,25 +46,27 @@ def send_reply_hello():
         s.listen(102)
         while True:
             conn, addr = s.accept()
-            print 'Connected by', addr
+            # print 'Connected by', addr
             data = conn.recv(4096)
             data_received = pickle.loads(data)
 
             ##
             user_variables.mutex.acquire()
             user_variables.ip_to_index_map[addr[0]] = data_received['index']
+            user_variables.ip_to_username[addr[0]] = data_received['username']
+            xterm.print_xterm_message(data_received['username'] + ' joined the chat')
             user_variables.mutex.release()
 
             ## send back the reply 
             msg = {}
             send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            print 'reply being sent to addr[0]:' + addr[0]
-            print type(addr[0])
+            # print 'reply being sent to addr[0]:' + addr[0]
+            # print type(addr[0])
             send_socket.connect((addr[0],user_variables.joining_port))
             msg['msg_type'] = user_variables.REPLY_HELLO
             msg['index'] = user_variables.self_index
             msg['timestamp'] = user_variables.timestamp
-            print 'message sent'
+            # print 'message sent'
             send_socket.send(pickle.dumps(msg) )
             send_socket.close()
     finally:
@@ -92,7 +94,7 @@ def send_to_all(msg):
             receive_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 s.connect((ip,send_port))
-                print 'msg type ' +str(msg['msg_type']) + ' sent to '+ str(ip) 
+                # print 'msg type ' +str(msg['msg_type']) + ' sent to '+ str(ip) 
                 s.send(pickle.dumps(msg) )
                 s.close()
                 # wait for message receive 
@@ -106,7 +108,7 @@ def send_to_all(msg):
                 receive_socket.listen(1)
 
                 conn, addr = receive_socket.accept()
-                print 'Connected Successfully by', addr
+                # print 'Connected Successfully by', addr
                 data = conn.recv(4096)
                 data_received = pickle.loads(data)
                 receive_socket.close()
@@ -119,7 +121,7 @@ def send_to_all(msg):
                     user_variables.mutex.release()
 
             except :
-                print str(ip) + ' time out '
+                # print str(ip) + ' time out '
                 logout(ip)
                 # CALL LEAVING PROTOCOL send leave message to supernode on the leave port 
             finally:
@@ -195,11 +197,12 @@ def receive_msg():
 # fiunction to send the message to the other users 
 def send_txt_msg():
     while(True):
-        message = raw_input(str(user_variables.self_ip)+'$ ')
-        xterm.print_xterm_message(user_variables.username +': ' +message)
+        message = raw_input(str(user_variables.username)+'$ ')
         if(message == 'logout'):
+            print 'logout done '
             logout('0')
         else:
+            xterm.print_xterm_message(user_variables.username +': ' +message)
             msg = {}
             msg['msg_type'] = user_variables.TEXT_MSG
             msg['index'] = user_variables.self_index
@@ -220,7 +223,7 @@ def hello_users():
 
     ## joining protocol complete now  
     user_variables.join_complete = True
-    print 'join complete'
+    # print 'join complete'
     t1 = threading.Thread(target=send_reply_hello, args=())
     t1.start()
     # t4 = threading.Thread(target=logout, args=())
@@ -242,7 +245,7 @@ def reply_join():
         receive_socket.bind(('',user_variables.joining_port))
         receive_socket.listen(1)
         conn, addr = receive_socket.accept()
-        print 'Connected by', addr
+        # print 'Connected by', addr
         data = conn.recv(4096)
         data_received = pickle.loads(data)
         receive_socket.close()
@@ -250,9 +253,10 @@ def reply_join():
         user_variables.mutex.acquire()
         user_variables.ip_to_index_map = data_received['ip_to_index']
         user_variables.self_index = data_received['index']
+        user_variables.ip_to_username = data_received['ip_to_username']
         user_variables.mutex.release()
 
-        print 'index received '+ str(user_variables.self_index)
+        # print 'index received '+ str(user_variables.self_index)
         ## send hello msg to all the other users in the chat 
         hello_users()
 
@@ -271,9 +275,10 @@ def start_join():
         msg = {}
         msg['msg_type'] = user_variables.JOIN
         msg['ip'] = user_variables.self_ip
+        msg['username'] = user_variables.username
         s.send(pickle.dumps(msg) )
         s.close()
-        print 'Data Sent to Server'
+        # print 'Data Sent to Server'
         print 'user ---'  + str(user_variables.self_ip)
 
         #### waiting for reply join 
@@ -295,13 +300,15 @@ def leave_update():
         data = conn.recv(4096)
         data_received = pickle.loads(data)
         receive_socket.close()
-        print str(data_received['ip'])+': leaving...'
+        xterm.print_xterm_message(user_variables.ip_to_username[data_received['ip']] + ' left the chat')
+        # print str(data_received['ip'])+': leaving...'
 
 
         ## update the timestamp and ip_to_index_map 
         user_variables.mutex.acquire()
         user_variables.timestamp[user_variables.ip_to_index_map[data_received['ip']]] = 0
         del user_variables.ip_to_index_map[data_received['ip']]
+        del user_variables.ip_to_username[data_received['ip']]
         user_variables.mutex.release()
 
 
@@ -313,9 +320,10 @@ def logout(ip):
     msg['ip'] = ip
     if ip == '0':
         msg['ip'] = user_variables.self_ip
-        sys.exit(0)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((user_variables.supernode_ips[0],user_variables.supernode_leaving_port))
     s.send(pickle.dumps(msg) )
     s.close()
+    if ip == '0':
+        sys.exit(0)
     print ('Leave message sent to the Server')

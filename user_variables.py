@@ -23,6 +23,7 @@ UPDATE = 8 # Crash recovery
 mutex = Lock()
 timestamp = [0 for x in range(100)]
 ip_to_index_map = {}
+ip_to_username = {}
 username = ""
 
 ############local variable go here##############################
