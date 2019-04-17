@@ -22,26 +22,36 @@ def leaving_protocol(port_no):
 			data_received = pickle.loads(data)
 
 
-			## deleting the ip received in the message 
-			if data_received['msg_type'] == supernode_variables.LEAVE:
-				print str(data_received['ip'])+': leaving...'
-				# print data_received
-				supernode_variables.mutex.acquire()
-				supernode_variables.index_array[supernode_variables.ip_to_index_map[data_received['ip']]] = 0
-				del supernode_variables.ip_to_index_map[data_received['ip']]
+			supernode_variables.mutex.acquire()
+			if(supernode_variables.update_complete == False):
+				queue_element = {}
+				queue_element['addr'] = addr
+				queue_element['data_received'] = data_received
+				supernode_variables.message_wait_queue.put(queue_element)
+			else:
+				leave_util(addr,data_received)
+			supernode_variables.mutex.release()
 
-				for ip in supernode_variables.ip_to_index_map:
-					msg = {}
-					send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-					send_socket.connect((ip,user_variables.leaving_port))
-					msg = {}
-					msg['msg_type'] = supernode_variables.LEAVE
-					msg['ip'] = data_received['ip']
-					send_socket.send(pickle.dumps(msg))
-					send_socket.close()
 
-				supernode_variables.mutex.release()
 
 			conn.close()
 	finally:
 		s.close()
+
+def leave_util(addr,data_received):
+	## deleting the ip received in the message 
+	if data_received['msg_type'] == supernode_variables.LEAVE:
+		print str(data_received['ip'])+': leaving...'
+		# print data_received
+		supernode_variables.index_array[supernode_variables.ip_to_index_map[data_received['ip']]] = 0
+		del supernode_variables.ip_to_index_map[data_received['ip']]
+
+		for ip in supernode_variables.ip_to_index_map:
+			msg = {}
+			send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			send_socket.connect((ip,user_variables.leaving_port))
+			msg = {}
+			msg['msg_type'] = supernode_variables.LEAVE
+			msg['ip'] = data_received['ip']
+			send_socket.send(pickle.dumps(msg))
+			send_socket.close()
