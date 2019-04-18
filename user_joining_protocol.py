@@ -94,7 +94,7 @@ def send_to_all(msg):
             send_port = user_variables.receiving_port
             receive_port = user_variables.sending_port
 
-
+    user_variables.mutex.acquire()
     for ip in user_variables.ip_to_index_map:
         if(ip != user_variables.self_ip):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -134,6 +134,7 @@ def send_to_all(msg):
             finally:
                 s.close()
                 receive_socket.close()
+    user_variables.mutex.release()
 
 #### updates the vector clock when a message is delivered
 def update_vector_clock(timestamp):
