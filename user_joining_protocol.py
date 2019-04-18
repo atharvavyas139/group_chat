@@ -104,7 +104,7 @@ def send_to_all(msg):
 
                 ## timeout set to 1 sec
                 tv = struct.pack("ll", 1, 0)
-                receive_socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDTIMEO, tv)
+                receive_socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVTIMEO, tv)
                 receive_socket.listen(1)
 
                 conn, addr = receive_socket.accept()
