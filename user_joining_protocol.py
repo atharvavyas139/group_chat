@@ -122,10 +122,8 @@ def send_to_all(msg):
 
                 ## update the local timestamp with the timestamp received if the msg_type is HELLO
                 if(msg['msg_type'] == user_variables.HELLO):
-                    user_variables.mutex.acquire()
                     for i in range(100):
                         user_variables.timestamp[i] = max(user_variables.timestamp[i], data_received['timestamp'][i])
-                    user_variables.mutex.release()
 
             except :
                 # print str(ip) + ' time out '
@@ -134,6 +132,7 @@ def send_to_all(msg):
             finally:
                 s.close()
                 receive_socket.close()
+    # print 'done work'
     user_variables.mutex.release()
 
 #### updates the vector clock when a message is delivered
