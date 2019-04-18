@@ -13,7 +13,7 @@ ip_to_index_map = {}
 message_wait_queue = queue.Queue()
 
 
-######### Message Type 
+######### Message Type
 JOIN = 1
 REPLY_JOIN = 2
 HELLO = 3
@@ -21,7 +21,7 @@ REPLY_HELLO = 4
 LEAVE = 5
 TEXT_MSG = 6
 ACK = 7
-UPDATE = 8 # Crash recovery 
+UPDATE = 8 # Crash recovery
 
 
 
