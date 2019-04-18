@@ -212,7 +212,7 @@ def receive_msg():
 def send_txt_msg():
     while(True):
         message = raw_input(str(user_variables.username)+'$ ')
-        if(message == 'logout'):
+        if "logout" in message:
             print 'logout done '
             logout('0')
         else:
