@@ -45,29 +45,35 @@ def send_reply_hello():
         s.bind(('',user_variables.joining_port))
         s.listen(102)
         while True:
-            conn, addr = s.accept()
-            # print 'Connected by', addr
-            data = conn.recv(4096)
-            data_received = pickle.loads(data)
-            if data_received['msg_type'] == user_variables.HELLO:
-                ##
-                user_variables.mutex.acquire()
-                user_variables.ip_to_index_map[addr[0]] = data_received['index']
-                user_variables.ip_to_username[addr[0]] = data_received['username']
-                xterm.print_xterm_message(data_received['username'] + ' joined the chat')
-                user_variables.mutex.release()
+            try:
+                conn, addr = s.accept()
+                # print 'Connected by', addr
+                data = conn.recv(4096)
+                data_received = pickle.loads(data)
+                if data_received['msg_type'] == user_variables.HELLO:
+                    ##
+                    user_variables.mutex.acquire()
+                    user_variables.ip_to_index_map[addr[0]] = data_received['index']
+                    user_variables.ip_to_username[addr[0]] = data_received['username']
+                    xterm.print_xterm_message(data_received['username'] + ' joined the chat')
+                    user_variables.mutex.release()
 
-                ## send back the reply
-                msg = {}
-                send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                # print 'reply being sent to addr[0]:' + addr[0]
-                # print type(addr[0])
-                send_socket.connect((addr[0],user_variables.joining_port))
-                msg['msg_type'] = user_variables.REPLY_HELLO
-                msg['index'] = user_variables.self_index
-                msg['timestamp'] = user_variables.timestamp
-                # print 'message sent'
-                send_socket.send(pickle.dumps(msg) )
+                    ## send back the reply
+                    msg = {}
+                    send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    # print 'reply being sent to addr[0]:' + addr[0]
+                    # print type(addr[0])
+                    send_socket.connect((addr[0],user_variables.joining_port))
+                    msg['msg_type'] = user_variables.REPLY_HELLO
+                    msg['index'] = user_variables.self_index
+                    msg['timestamp'] = user_variables.timestamp
+                    # print 'message sent'
+                    send_socket.send(pickle.dumps(msg) )
+                    
+            except Exception as e:
+                print 'exception in send reply heelo'
+                print e
+            finally:
                 send_socket.close()
     finally:
         s.close()
@@ -147,48 +153,54 @@ def receive_msg():
         s.bind(('',user_variables.receiving_port))
         s.listen(102)
         while True:
-            conn, addr = s.accept()
-            # print 'Connected by', addr
-            data = conn.recv(4096)
-            data_received = pickle.loads(data)
-            time_received = time.time()
-            # print str(addr[0])+':' + data_received['text_msg']
-            ## send back the reply
-            msg = {}
-            send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # print 'reply being sent to addr[0]:' + addr[0]
-            send_socket.connect((addr[0],user_variables.sending_port))
-            msg['msg_type'] = user_variables.ACK
-            msg['index'] = user_variables.self_index
-            msg['timestamp'] = user_variables.timestamp
-            # print 'ACK message sent'
-            send_socket.send(pickle.dumps(msg) )
-            send_socket.close()
-            user_variables.priority_queue.put(user_variables.QueueElement(data_received['timestamp'],
-            time_received, data_received['username'] +': ' +data_received['text_msg'], data_received['index']))
-            while True:
-                if user_variables.priority_queue.empty():
-                    break
-                queue_element = user_variables.priority_queue.get()
-                first_index = queue_element.index
-                i = -1
-                for i in range(101):
-                    if i == 100:
+            try:
+                conn, addr = s.accept()
+                # print 'Connected by', addr
+                data = conn.recv(4096)
+                data_received = pickle.loads(data)
+                time_received = time.time()
+                # print str(addr[0])+':' + data_received['text_msg']
+                ## send back the reply
+                msg = {}
+                send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                # print 'reply being sent to addr[0]:' + addr[0]
+                send_socket.connect((addr[0],user_variables.sending_port))
+                msg['msg_type'] = user_variables.ACK
+                msg['index'] = user_variables.self_index
+                msg['timestamp'] = user_variables.timestamp
+                # print 'ACK message sent'
+                send_socket.send(pickle.dumps(msg) )
+                
+                user_variables.priority_queue.put(user_variables.QueueElement(data_received['timestamp'],
+                time_received, data_received['username'] +': ' +data_received['text_msg'], data_received['index']))
+                while True:
+                    if user_variables.priority_queue.empty():
                         break
-                    if i == first_index:
-                        if user_variables.timestamp[i] != queue_element.timestamp[i] -1:
+                    queue_element = user_variables.priority_queue.get()
+                    first_index = queue_element.index
+                    i = -1
+                    for i in range(101):
+                        if i == 100:
                             break
-                    else:
-                        if user_variables.timestamp[i] < queue_element.timestamp[i]:
-                            break
-                # print 'i break at:' + str(i)
-                if i == 100: #condition to deliver message is true
-                    update_vector_clock(queue_element.timestamp)
-                    # print 'send to xterm:' + str(queue_element.message)
-                    xterm.print_xterm_message(queue_element.message)
-                else:# put back the element again
-                    user_variables.priority_queue.put(queue_element)
-                    break
+                        if i == first_index:
+                            if user_variables.timestamp[i] != queue_element.timestamp[i] -1:
+                                break
+                        else:
+                            if user_variables.timestamp[i] < queue_element.timestamp[i]:
+                                break
+                    # print 'i break at:' + str(i)
+                    if i == 100: #condition to deliver message is true
+                        update_vector_clock(queue_element.timestamp)
+                        # print 'send to xterm:' + str(queue_element.message)
+                        xterm.print_xterm_message(queue_element.message)
+                    else:# put back the element again
+                        user_variables.priority_queue.put(queue_element)
+                        break
+            except Exception as e:
+                print 'exception in receive_msg'
+                print e
+            finally:
+                send_socket.close()
 
     finally:
         s.close()
