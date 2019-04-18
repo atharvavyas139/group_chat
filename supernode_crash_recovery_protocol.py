@@ -12,6 +12,11 @@ import struct
 import time
 import select
 
+
+def print_metadata():
+	for ip in supernode_variables.ip_to_username:
+		print(ip," : ",supernode_variables.ip_to_username[ip])
+
 def startup(port_no):
 	print("starting supernode")
 	for ip in supernode_variables.supernode_ips:
@@ -33,10 +38,9 @@ def startup(port_no):
 			print("exception in startup : ",e)
 			pass
 
-
+	# time.sleep(10)
 
 	supernode_variables.mutex.acquire()
-	
 	while (not supernode_variables.message_wait_queue.empty()):
 		queue_element = supernode_variables.message_wait_queue.get()
 		addr = queue_element['addr']
@@ -46,9 +50,8 @@ def startup(port_no):
 		else:
 			leaving_protocol.leave_util(addr,data_received)
 	supernode_variables.update_complete = True
-
+	print_metadata()
 	supernode_variables.mutex.release()
-
 	update_reply(port_no)
 
 def update_vars(port_no):
@@ -92,14 +95,13 @@ def update_vars(port_no):
 		supernode_variables.mutex.release()
 
 def update_reply(port_no):
-	print("listening for update requests")
-	try:
-		while True:
+	while True:
+		print("listening for UPDATE requests")
+		try:
 			receive_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			receive_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 			receive_socket.bind(('',port_no))
 			receive_socket.listen(102)
-
 			conn, addr = receive_socket.accept()
 			data = conn.recv(4096)
 			conn.close()
@@ -117,11 +119,11 @@ def update_reply(port_no):
 				try:
 					send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 					send_socket.connect((addr[0],port_no))
-					send_socket.send(pickle.dumps(data_send) )
-					send_socket.close()
+					send_socket.send(pickle.dumps(data_send))
 				except:
 					print("problem in sending metadata")
+				finally:
 					send_socket.close()
-	except Exception,e:
-		print("problem in update_reply : ",e)
-		receive_socket.close()
+		except Exception,e:
+			print("problem in update_reply : ",e)
+			receive_socket.close()

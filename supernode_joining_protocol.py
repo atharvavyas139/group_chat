@@ -14,29 +14,33 @@ def start_joining_protocol(port_no):
 		s.bind(('',port_no))
 		s.listen(102)
 		while True:
-			conn, addr = s.accept()
-			print 'Connected by', addr
-			data = conn.recv(4096)
-			data_received = pickle.loads(data)
+			try:
+				conn, addr = s.accept()
+				print 'Connected by', addr
+				data = conn.recv(4096)
+				data_received = pickle.loads(data)
 
+				supernode_variables.mutex.acquire()
+				if(supernode_variables.update_complete == False):
+					queue_element = {}
+					queue_element['addr'] = addr
+					queue_element['data_received'] = data_received
+					supernode_variables.message_wait_queue.put(queue_element)
+					print("storing request in queue")
+				else:
+					join_util(addr,data_received)
+				
+				print data_received
+				# Access the information by doing data_variable.process_id or data_variable.task_id etc..,
+				print 'Data received from client at addr:' + str(addr[0])
+			except Exception,e:
+				print("problem in joining a user : ",e)
+			finally:
+				conn.close()
+				supernode_variables.mutex.release()
 
-
-			supernode_variables.mutex.acquire()
-			if(supernode_variables.update_complete == False):
-				queue_element = {}
-				queue_element['addr'] = addr
-				queue_element['data_received'] = data_received
-				supernode_variables.message_wait_queue.put(queue_element)
-			else:
-				join_util(addr,data_received)
-			supernode_variables.mutex.release()
-
-
-
-			conn.close()
-			print data_received
-			# Access the information by doing data_variable.process_id or data_variable.task_id etc..,
-			print 'Data received from client at addr:' + str(addr[0])
+	except Exception,e:
+		print("problem encounter in start_joining_protocol : ",e)
 	finally:
 		s.close()
 
@@ -60,8 +64,9 @@ def join_util(addr,data_received):
 		msg['ip_to_index'] = supernode_variables.ip_to_index_map
 		msg['ip_to_username'] = supernode_variables.ip_to_username
 		send_socket.send(pickle.dumps(msg) )
-		send_socket.close()
 		print 'reply_join sent to user'
 		# print supernode_variables.ip_to_username
-	except:
-		pass
+	except Exception,e:
+		print("Exception encountered in join_util : ",e)
+	finally:
+		send_socket.close()

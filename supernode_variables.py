@@ -27,8 +27,8 @@ UPDATE = 8 # Crash recovery
 
 
 ####################fixed wale####################
-supernode_ips = ['10.5.18.104','10.5.18.109','10.5.18.114']  ## fill the supernode ips accordingly
-self_ip = '10.5.18.104'
+supernode_ips = ['10.5.18.103','10.5.18.104','10.5.18.109']  ## fill the supernode ips accordingly
+self_ip = '10.5.18.103'
 joining_port = 50019
 leaving_port = 50021
 update_complete = False
