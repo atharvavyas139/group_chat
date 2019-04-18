@@ -21,7 +21,6 @@ def leaving_protocol(port_no):
 			data = conn.recv(4096)
 			data_received = pickle.loads(data)
 
-
 			supernode_variables.mutex.acquire()
 			if(supernode_variables.update_complete == False):
 				queue_element = {}
@@ -31,8 +30,6 @@ def leaving_protocol(port_no):
 			else:
 				leave_util(addr,data_received)
 			supernode_variables.mutex.release()
-
-
 
 			conn.close()
 	finally:
@@ -45,7 +42,7 @@ def leave_util(addr,data_received):
 		# print data_received
 		supernode_variables.index_array[supernode_variables.ip_to_index_map[data_received['ip']]] = 0
 		del supernode_variables.ip_to_index_map[data_received['ip']]
-
+		del supernode_variables.ip_to_username[data_received['ip']]
 		for ip in supernode_variables.ip_to_index_map:
 			msg = {}
 			send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
