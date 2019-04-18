@@ -269,9 +269,9 @@ def start_join():
     user_variables.username = raw_input('Enter a user name : ')
     time.sleep(1.0)
     xterm.print_xterm_message('Welcome '+user_variables.username)
-    for i in range(1):
+    for i in range(3):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((user_variables.supernode_ips[i],user_variables.supernode_ports[0]))
+        s.connect((supernode_variables.supernode_ips[i],user_variables.supernode_ports[0]))
         msg = {}
         msg['msg_type'] = user_variables.JOIN
         msg['ip'] = user_variables.self_ip
@@ -314,16 +314,18 @@ def leave_update():
 
 
 def logout(ip):
-    # while True:
-    msg = {}
-    msg['msg_type'] = user_variables.LEAVE
-    msg['ip'] = ip
-    if ip == '0':
-        msg['ip'] = user_variables.self_ip
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((user_variables.supernode_ips[0],user_variables.supernode_leaving_port))
-    s.send(pickle.dumps(msg) )
-    s.close()
-    if ip == '0':
-        sys.exit(0)
-    print ('Leave message sent to the Server')
+	# while True:
+	msg = {}
+	msg['msg_type'] = user_variables.LEAVE
+	msg['ip'] = ip
+	if ip == '0':
+		msg['ip'] = user_variables.self_ip
+	for i in range(1):
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		s.connect((user_variables.supernode_ips[i],user_variables.supernode_leaving_port))
+		s.send(pickle.dumps(msg) )
+		s.close()
+
+	print ('Leave message sent to the Server')
+	if ip == '0':
+		sys.exit(0)
