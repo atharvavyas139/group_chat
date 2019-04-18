@@ -271,8 +271,12 @@ def reply_join():
         user_variables.ip_to_index_map = data_received['ip_to_index']
         user_variables.self_index = data_received['index']
         user_variables.ip_to_username = data_received['ip_to_username']
+        
+        user_names = ""
+        for i in user_variables.ip_to_username.keys():
+            user_names += str(user_variables.ip_to_username[i]) + ' ' 
         user_variables.mutex.release()
-
+        print 'current users in the group-' + user_names
         print 'index received '+ str(user_variables.self_index)
         ## send hello msg to all the other users in the chat
         hello_users()
