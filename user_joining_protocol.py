@@ -124,7 +124,10 @@ def send_to_all(msg):
                 if(msg['msg_type'] == user_variables.HELLO):
                     for i in range(100):
                         user_variables.timestamp[i] = max(user_variables.timestamp[i], data_received['timestamp'][i])
-
+                
+                # for the CBCAST check 
+                # if(msg['msg_type'] == user_variables.TEXT_MSG):
+                #     time.sleep(10)
             except :
                 # print str(ip) + ' time out '
                 logout(ip)
