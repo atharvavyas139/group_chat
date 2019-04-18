@@ -349,7 +349,7 @@ def logout(ip):
             s.connect((supernode_variables.supernode_ips[i],user_variables.supernode_leaving_port))
             s.send(pickle.dumps(msg) )
         except Exception as e:
-            print str(supernode_variables.supernode_ips[i]) + 'has left'
+            print str(supernode_variables.supernode_ips[i]) + 'is down'
         finally:
             s.close()
 
