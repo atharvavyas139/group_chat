@@ -45,6 +45,7 @@ def send_reply_hello():
         s.bind(('',user_variables.joining_port))
         s.listen(102)
         while True:
+            send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 conn, addr = s.accept()
                 # print 'Connected by', addr
@@ -60,7 +61,7 @@ def send_reply_hello():
 
                     ## send back the reply
                     msg = {}
-                    send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    
                     # print 'reply being sent to addr[0]:' + addr[0]
                     # print type(addr[0])
                     send_socket.connect((addr[0],user_variables.joining_port))
@@ -153,6 +154,7 @@ def receive_msg():
         s.bind(('',user_variables.receiving_port))
         s.listen(102)
         while True:
+            send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 conn, addr = s.accept()
                 # print 'Connected by', addr
@@ -162,7 +164,7 @@ def receive_msg():
                 # print str(addr[0])+':' + data_received['text_msg']
                 ## send back the reply
                 msg = {}
-                send_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                
                 # print 'reply being sent to addr[0]:' + addr[0]
                 send_socket.connect((addr[0],user_variables.sending_port))
                 msg['msg_type'] = user_variables.ACK
