@@ -223,7 +223,7 @@ def hello_users():
 
     ## joining protocol complete now
     user_variables.join_complete = True
-    # print 'join complete'
+    print 'join complete'
     t1 = threading.Thread(target=send_reply_hello, args=())
     t1.start()
     # t4 = threading.Thread(target=logout, args=())
@@ -245,7 +245,7 @@ def reply_join():
         receive_socket.bind(('',user_variables.joining_port))
         receive_socket.listen(1)
         conn, addr = receive_socket.accept()
-        # print 'Connected by', addr
+        print 'Connected by', addr
         data = conn.recv(4096)
         data_received = pickle.loads(data)
         receive_socket.close()
@@ -256,7 +256,7 @@ def reply_join():
         user_variables.ip_to_username = data_received['ip_to_username']
         user_variables.mutex.release()
 
-        # print 'index received '+ str(user_variables.self_index)
+        print 'index received '+ str(user_variables.self_index)
         ## send hello msg to all the other users in the chat
         hello_users()
 
@@ -270,19 +270,21 @@ def start_join():
     time.sleep(1.0)
     xterm.print_xterm_message('Welcome '+user_variables.username)
     for i in range(3):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((supernode_variables.supernode_ips[i],user_variables.supernode_ports[0]))
-        msg = {}
-        msg['msg_type'] = user_variables.JOIN
-        msg['ip'] = user_variables.self_ip
-        msg['username'] = user_variables.username
-        s.send(pickle.dumps(msg) )
-        s.close()
-        # print 'Data Sent to Server'
-        print 'user ---'  + str(user_variables.self_ip)
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((supernode_variables.supernode_ips[i],user_variables.supernode_ports[0]))
+            msg = {}
+            msg['msg_type'] = user_variables.JOIN
+            msg['ip'] = user_variables.self_ip
+            msg['username'] = user_variables.username
+            s.send(pickle.dumps(msg) )
+            # print 'Data Sent to Server'
+            print 'user ---'  + str(user_variables.self_ip)
+        finally:
+            s.close()
 
         #### waiting for reply join
-        reply_join()
+    reply_join()
 
 ############## startup goes here ##############
 
@@ -326,10 +328,12 @@ def logout(ip):
     if ip == '0':
         msg['ip'] = user_variables.self_ip
     for i in range(3):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((supernode_variables.supernode_ips[i],user_variables.supernode_leaving_port))
-        s.send(pickle.dumps(msg) )
-        s.close()
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((supernode_variables.supernode_ips[i],user_variables.supernode_leaving_port))
+            s.send(pickle.dumps(msg) )
+        finally:
+            s.close()
 
     print ('Leave message sent to the Server')
     if ip == '0':

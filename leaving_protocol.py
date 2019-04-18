@@ -13,6 +13,7 @@ except ImportError:
 def leaving_protocol(port_no):
 	try:
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		s.bind(('',port_no))
 		s.listen(102)
 		while True:
