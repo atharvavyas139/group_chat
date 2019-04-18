@@ -294,6 +294,8 @@ def start_join():
             s.send(pickle.dumps(msg) )
             # print 'Data Sent to Server'
             print 'user ---'  + str(user_variables.self_ip)
+        except Exception as e:
+            print str(supernode_variables.supernode_ips[i]) + 'is down'
         finally:
             s.close()
 
