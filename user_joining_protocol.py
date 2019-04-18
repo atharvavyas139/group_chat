@@ -360,6 +360,6 @@ def logout(ip):
         finally:
             s.close()
 
-    print ('Leave message sent to the Server')
+    print ('Leave message sent to the Server' + str(msg['ip']))
     if ip == '0':
         sys.exit(0)
