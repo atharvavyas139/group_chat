@@ -13,7 +13,7 @@ ip_to_index_map = {}
 message_wait_queue = queue.Queue()
 
 
-######### Message Type 
+######### Message Type
 JOIN = 1
 REPLY_JOIN = 2
 HELLO = 3
@@ -21,13 +21,13 @@ REPLY_HELLO = 4
 LEAVE = 5
 TEXT_MSG = 6
 ACK = 7
-UPDATE = 8 # Crash recovery 
+UPDATE = 8 # Crash recovery
 
 
 
 
 ####################fixed wale####################
-supernode_ips = ['10.5.18.104','10.5.18.109','10.5.18.114']  ## fill the supernode ips accordingly
+supernode_ips = ['10.5.18.104','10.5.18.109','10.5.18.103']  ## fill the supernode ips accordingly
 self_ip = '10.5.18.104'
 joining_port = 50019
 leaving_port = 50021
