@@ -128,8 +128,10 @@ def send_to_all(msg):
                 # for the CBCAST check 
                 # if(msg['msg_type'] == user_variables.TEXT_MSG):
                 #     time.sleep(10)
-            except :
+            except Exception as e:
                 # print str(ip) + ' time out '
+                print 'exception in send to all'
+                print e
                 logout(ip)
                 # CALL LEAVING PROTOCOL send leave message to supernode on the leave port
             finally:
