@@ -348,6 +348,8 @@ def logout(ip):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((supernode_variables.supernode_ips[i],user_variables.supernode_leaving_port))
             s.send(pickle.dumps(msg) )
+        except Exception as e:
+            print str(supernode_variables.supernode_ips[i]) + 'has left'
         finally:
             s.close()
 
