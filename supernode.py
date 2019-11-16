@@ -4,6 +4,7 @@ from threading import Lock
 import supernode_variables
 import supernode_joining_protocol
 import leaving_protocol
+import supernode_crash_recovery_protocol
 try:
     import queue
 except ImportError:
@@ -25,3 +26,7 @@ t1 = threading.Thread(target=supernode_joining_protocol.start_joining_protocol, 
 t1.start()
 t2 = threading.Thread(target=leaving_protocol.leaving_protocol, args=(supernode_variables.leaving_port,))
 t2.start()
+t3 = threading.Thread(target=supernode_crash_recovery_protocol.startup, args=(supernode_variables.recovery_port,))
+t3.start()
+
+# t3 = threading.Thread(target=supo)
